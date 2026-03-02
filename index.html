@@ -1,0 +1,1468 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Roleta Nossa</title>
+  <style>
+    :root{
+      --bg1:#0b0b12; --bg2:#120b12;
+      --card: rgba(255,255,255,.06);
+      --stroke: rgba(255,255,255,.14);
+      --text: rgba(255,255,255,.92);
+      --muted: rgba(255,255,255,.72);
+      --accent:#ff4b78; --accent2:#ffb86b;
+      --shadow: 0 18px 55px rgba(0,0,0,.45);
+    }
+    *{ box-sizing:border-box; }
+    html,body{ height:100%; }
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+      color:var(--text);
+      background:
+        radial-gradient(1000px 650px at 20% 10%, rgba(255,75,120,.20), transparent 60%),
+        radial-gradient(800px 600px at 80% 30%, rgba(255,184,107,.16), transparent 55%),
+        linear-gradient(160deg, var(--bg1), var(--bg2));
+      overflow-x:hidden;
+    }
+    .wrap{ min-height:100%; display:grid; place-items:center; padding:24px 14px; }
+    .card{
+      width:min(1040px, 100%);
+      background: linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,.04));
+      border:1px solid var(--stroke);
+      border-radius: 24px;
+      box-shadow: var(--shadow);
+      position:relative;
+      overflow:hidden;
+    }
+    .card::before{
+      content:""; position:absolute; inset:-80px -120px auto auto;
+      width:260px;height:260px;
+      background: radial-gradient(circle at 30% 30%, rgba(255,75,120,.35), transparent 60%);
+      opacity:.9; pointer-events:none;
+    }
+    .card::after{
+      content:""; position:absolute; inset:auto auto -110px -130px;
+      width:320px;height:320px;
+      background: radial-gradient(circle at 40% 40%, rgba(255,184,107,.25), transparent 62%);
+      opacity:.9; pointer-events:none;
+    }
+    header{
+      padding:22px 22px 14px 22px;
+      display:flex; align-items:flex-start; justify-content:space-between; gap:14px;
+      position:relative; z-index:1;
+    }
+    .title{ display:flex; flex-direction:column; gap:6px; }
+    .title h1{ margin:0; font-size:clamp(20px, 3vw, 28px); letter-spacing:.2px; }
+    .title p{ margin:0; color:var(--muted); line-height:1.45; font-size:14px; }
+    .badge{
+      display:inline-flex; align-items:center; gap:8px;
+      padding:10px 12px;
+      background: rgba(255,255,255,.06);
+      border:1px solid var(--stroke);
+      border-radius: 999px;
+      color: var(--muted);
+      font-size: 13px;
+      white-space:nowrap;
+      user-select:none;
+      text-align:right;
+    }
+    .dot{
+      width:8px;height:8px;border-radius:50%;
+      background: radial-gradient(circle at 30% 30%, var(--accent2), var(--accent));
+      box-shadow: 0 0 16px rgba(255,75,120,.55);
+      flex: 0 0 auto;
+    }
+
+    .content{
+      display:grid;
+      grid-template-columns: 1.15fr .85fr;
+      gap:18px;
+      padding: 10px 22px 22px 22px;
+      position:relative; z-index:1;
+    }
+    @media (max-width: 920px){ .content{ grid-template-columns:1fr; } }
+
+    .wheelArea{
+      display:grid;
+      place-items:center;
+      padding: 10px 10px 18px 10px;
+      border-radius: 18px;
+      background: rgba(255,255,255,.03);
+      border:1px solid var(--stroke);
+      position:relative;
+      overflow:hidden;
+    }
+
+    .wheelWrap{
+      width:min(560px, 100%);
+      aspect-ratio: 1 / 1;
+      position:relative;
+      display:grid;
+      place-items:center;
+      padding: 18px;
+    }
+
+    #wheel{
+      width:100%;
+      height:100%;
+      border-radius:999px;
+      background: rgba(0,0,0,.15);
+      border: 1px solid rgba(255,255,255,.10);
+      box-shadow: 0 18px 55px rgba(0,0,0,.35);
+    }
+    .shine{
+      position:absolute;
+      inset: 18px;
+      border-radius:999px;
+      pointer-events:none;
+      background:
+        radial-gradient(80% 80% at 20% 15%, rgba(255,255,255,.16), transparent 45%),
+        radial-gradient(120% 120% at 70% 75%, rgba(255,255,255,.06), transparent 55%),
+        conic-gradient(from 0deg,
+          rgba(255,255,255,.00) 0deg,
+          rgba(255,255,255,.10) 25deg,
+          rgba(255,255,255,.00) 60deg,
+          rgba(255,255,255,.07) 105deg,
+          rgba(255,255,255,.00) 160deg,
+          rgba(255,255,255,.00) 360deg
+        );
+      mix-blend-mode: screen;
+      filter: blur(.2px);
+      opacity:.85;
+      transform: rotate(0deg);
+    }
+    .shine.spin{ animation: shineSpin 1.1s linear infinite; }
+    @keyframes shineSpin { to { transform: rotate(360deg); } }
+
+    .pointer{
+      position:absolute;
+      top: 6px;
+      left: 50%;
+      transform: translateX(-50%);
+      width:0;height:0;
+      border-left: 16px solid transparent;
+      border-right:16px solid transparent;
+      border-bottom: 28px solid rgba(255,255,255,.92);
+      filter: drop-shadow(0 8px 14px rgba(0,0,0,.45));
+      z-index: 6;
+      transform-origin: 50% 20%;
+    }
+    .pointer::after{
+      content:"";
+      position:absolute;
+      left:50%;
+      top: 8px;
+      transform: translateX(-50%);
+      width:10px;height:10px;border-radius:50%;
+      background: linear-gradient(135deg, var(--accent2), var(--accent));
+      box-shadow: 0 0 18px rgba(255,75,120,.55);
+    }
+    .pointer.tick{ animation: pointerTick .10s ease-out; }
+    @keyframes pointerTick{
+      0%{ transform: translateX(-50%) rotate(0deg); }
+      50%{ transform: translateX(-50%) rotate(-8deg); }
+      100%{ transform: translateX(-50%) rotate(0deg); }
+    }
+
+    .hub{
+      position:absolute;
+      width:72px;height:72px;border-radius:999px;
+      background: radial-gradient(circle at 30% 30%, rgba(255,255,255,.22), rgba(255,255,255,.06));
+      border:1px solid rgba(255,255,255,.14);
+      box-shadow: 0 12px 30px rgba(0,0,0,.35);
+      display:grid; place-items:center;
+      z-index: 5;
+      pointer-events:none;
+    }
+    .hub span{ font-size:22px; filter: drop-shadow(0 6px 10px rgba(0,0,0,.35)); }
+
+    #fx{
+      position:absolute;
+      inset:0;
+      width:100%; height:100%;
+      pointer-events:none;
+      z-index: 7;
+    }
+
+    .controls{
+      margin-top: 14px;
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      justify-content:center;
+      align-items:center;
+    }
+
+    .btn{
+      appearance:none;
+      border:1px solid rgba(255,255,255,.16);
+      background: rgba(255,255,255,.06);
+      color: var(--text);
+      padding: 12px 16px;
+      border-radius: 14px;
+      cursor:pointer;
+      font-weight: 700;
+      letter-spacing:.2px;
+      transition: transform .12s ease, background .12s ease, border-color .12s ease, box-shadow .12s ease, opacity .12s ease;
+      outline:none;
+      user-select:none;
+    }
+    .btn:hover{
+      transform: translateY(-1px);
+      border-color: rgba(255,255,255,.22);
+      background: rgba(255,255,255,.085);
+    }
+    .btn:active{ transform: translateY(0px) scale(.99); }
+    .btn:focus-visible{
+      box-shadow: 0 0 0 4px rgba(255,75,120,.25);
+      border-color: rgba(255,75,120,.45);
+    }
+    .btn.primary{
+      background: linear-gradient(135deg, rgba(255,75,120,.95), rgba(255,184,107,.92));
+      border-color: rgba(255,255,255,.22);
+      color: #120b12;
+      box-shadow: 0 16px 40px rgba(255,75,120,.22);
+    }
+    .btn.primary:hover{
+      background: linear-gradient(135deg, rgba(255,75,120,1), rgba(255,184,107,.98));
+      box-shadow: 0 18px 55px rgba(255,75,120,.25);
+    }
+    .btn.danger{
+      background: rgba(255,75,120,.10);
+      border-color: rgba(255,75,120,.35);
+    }
+    .btn.danger:hover{
+      background: rgba(255,75,120,.14);
+      border-color: rgba(255,75,120,.45);
+    }
+    .btn[disabled]{
+      opacity:.55;
+      cursor:not-allowed;
+      transform:none !important;
+    }
+
+    .side{
+      padding: 14px;
+      border-radius: 18px;
+      background: rgba(255,255,255,.03);
+      border:1px solid var(--stroke);
+      display:flex;
+      flex-direction:column;
+      gap:12px;
+      min-height: 380px;
+    }
+    .side h2{ margin:0; font-size: 16px; letter-spacing:.2px; }
+    .hint{ margin:0; color:var(--muted); font-size: 13px; line-height:1.45; }
+
+    .panel{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:10px;
+    }
+    @media (max-width: 920px){ .panel{ grid-template-columns:1fr; } }
+
+    .toggle{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      padding: 10px 12px;
+      border-radius: 14px;
+      background: rgba(0,0,0,.12);
+      border:1px solid rgba(255,255,255,.10);
+      user-select:none;
+    }
+    .toggle span{ color: rgba(255,255,255,.86); font-size: 13px; }
+    .switch{
+      width:44px;height:26px;border-radius:999px;
+      background: rgba(255,255,255,.10);
+      border:1px solid rgba(255,255,255,.14);
+      position:relative;
+      cursor:pointer;
+      flex: 0 0 auto;
+    }
+    .knob{
+      width:20px;height:20px;border-radius:50%;
+      background: rgba(255,255,255,.88);
+      position:absolute; top:2px; left:2px;
+      transition: transform .14s ease, background .14s ease;
+      box-shadow: 0 10px 20px rgba(0,0,0,.35);
+    }
+    .switch.on{
+      background: linear-gradient(135deg, rgba(255,75,120,.65), rgba(255,184,107,.55));
+      border-color: rgba(255,255,255,.22);
+    }
+    .switch.on .knob{ transform: translateX(18px); background: #120b12; }
+
+    .list{
+      display:flex; flex-direction:column; gap:8px;
+      padding: 10px;
+      border-radius: 14px;
+      background: rgba(0,0,0,.12);
+      border:1px solid rgba(255,255,255,.10);
+      max-height: 240px;
+      overflow:auto;
+    }
+    .item{
+      padding:10px 10px;
+      border-radius: 12px;
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(255,255,255,.05);
+      color: rgba(255,255,255,.86);
+      font-size: 13px;
+      line-height:1.35;
+    }
+
+    .history{
+      display:flex; flex-direction:column; gap:8px;
+      padding: 10px;
+      border-radius: 14px;
+      background: rgba(0,0,0,.12);
+      border:1px solid rgba(255,255,255,.10);
+      max-height: 160px;
+      overflow:auto;
+    }
+    .hItem{
+      padding:10px 10px;
+      border-radius: 12px;
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(255,255,255,.04);
+      color: rgba(255,255,255,.80);
+      font-size: 13px;
+      line-height:1.35;
+      display:flex; gap:10px; align-items:flex-start;
+    }
+    .hNum{
+      width:24px;height:24px; border-radius:10px;
+      display:grid; place-items:center;
+      background: rgba(255,255,255,.06);
+      border:1px solid rgba(255,255,255,.10);
+      color: rgba(255,255,255,.85);
+      flex: 0 0 auto;
+      font-weight:800;
+      font-size: 12px;
+    }
+
+    /* ✅ Admin (discreto: escondido por padrão) */
+    .admin{
+      display:none; /* hidden until secret is triggered */
+      padding: 12px;
+      border-radius: 16px;
+      background: rgba(0,0,0,.14);
+      border:1px solid rgba(255,255,255,.10);
+      flex-direction:column;
+      gap:10px;
+    }
+    .admin.show{ display:flex; }
+    .adminTop{ display:flex; align-items:center; justify-content:space-between; gap:10px; }
+    .pill{
+      display:inline-flex; align-items:center; gap:8px;
+      padding: 8px 10px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.06);
+      border:1px solid rgba(255,255,255,.10);
+      color: rgba(255,255,255,.82);
+      font-size: 12px;
+      user-select:none;
+    }
+    .row{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+      justify-content:space-between;
+    }
+    .input{
+      flex: 1 1 140px;
+      min-width: 140px;
+      appearance:none;
+      outline:none;
+      padding: 10px 12px;
+      border-radius: 14px;
+      border:1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.06);
+      color: rgba(255,255,255,.92);
+      font-weight: 700;
+    }
+    .input::placeholder{ color: rgba(255,255,255,.45); font-weight:700; }
+    .mini{
+      font-size: 12px;
+      color: rgba(255,255,255,.62);
+      line-height:1.35;
+    }
+
+    footer{
+      padding: 0 22px 18px 22px;
+      color: rgba(255,255,255,.55);
+      font-size: 12px;
+      position:relative; z-index:1;
+      display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap;
+    }
+
+    .overlay{
+      position:fixed; inset:0;
+      background: rgba(0,0,0,.55);
+      backdrop-filter: blur(10px);
+      display:none;
+      align-items:center; justify-content:center;
+      padding: 18px;
+      z-index: 99;
+    }
+    .overlay.active{ display:flex; }
+    .modal{
+      width: min(620px, 100%);
+      border-radius: 20px;
+      background: linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,.06));
+      border:1px solid rgba(255,255,255,.14);
+      box-shadow: 0 26px 80px rgba(0,0,0,.55);
+      padding: 18px;
+      position:relative;
+      overflow:hidden;
+    }
+    .modal::before{
+      content:"";
+      position:absolute;
+      inset:-120px -140px auto auto;
+      width:260px;height:260px;
+      background: radial-gradient(circle at 30% 30%, rgba(255,75,120,.30), transparent 62%);
+      pointer-events:none;
+    }
+    .mTop{ display:flex; align-items:flex-start; justify-content:space-between; gap:12px; position:relative; z-index:1; }
+    .modal h3{ margin:0; font-size: 16px; color: rgba(255,255,255,.88); }
+    .close{
+      width:40px;height:40px;
+      border-radius: 12px;
+      border:1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.06);
+      color: rgba(255,255,255,.86);
+      cursor:pointer;
+      transition: transform .12s ease, background .12s ease, border-color .12s ease;
+    }
+    .close:hover{ transform: translateY(-1px); background: rgba(255,255,255,.085); border-color: rgba(255,255,255,.20); }
+    .close:active{ transform: translateY(0) scale(.99); }
+    .close:focus-visible{ outline:none; box-shadow: 0 0 0 4px rgba(255,75,120,.25); border-color: rgba(255,75,120,.45); }
+
+    .resultBox{
+      margin-top: 12px;
+      padding: 14px;
+      border-radius: 16px;
+      border:1px solid rgba(255,255,255,.14);
+      background: rgba(0,0,0,.12);
+      position:relative; z-index:1;
+    }
+    .resultText{
+      margin:0;
+      font-size: 18px;
+      line-height:1.35;
+      font-weight: 900;
+      letter-spacing:.2px;
+      text-shadow: 0 8px 20px rgba(0,0,0,.25);
+    }
+    .sub{ margin: 8px 0 0 0; color: var(--muted); font-size: 13px; line-height:1.45; }
+    .mActions{
+      margin-top: 14px;
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      justify-content:flex-end;
+      position:relative; z-index:1;
+    }
+
+    .toast{
+      position: fixed;
+      left: 50%;
+      bottom: 18px;
+      transform: translateX(-50%);
+      background: rgba(20, 16, 28, .88);
+      border:1px solid rgba(255,255,255,.14);
+      color: rgba(255,255,255,.88);
+      padding: 10px 12px;
+      border-radius: 999px;
+      box-shadow: 0 16px 50px rgba(0,0,0,.45);
+      display:none;
+      z-index: 120;
+      font-size: 13px;
+      backdrop-filter: blur(10px);
+    }
+    .toast.show{ display:block; animation: pop .18s ease-out; }
+    @keyframes pop { from{ transform: translateX(-50%) translateY(10px); opacity:0; } to{ transform: translateX(-50%) translateY(0); opacity:1; } }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <main class="card">
+      <header>
+        <div class="title">
+          <h1>Roleta Nossa<span style="opacity:.75;font-weight:700"> Felipe &amp; Luisa</span></h1>
+          <p>Cuidado… alguns resultados são perigosamente bons”.</p>
+        </div>
+
+        <div class="badge" aria-label="Status">
+          <span class="dot" aria-hidden="true"></span>
+          <span id="statusText">Pronta pra girar</span>
+          <span style="opacity:.6;">•</span>
+          <span id="spinsLeftText">2 giros hoje</span>
+        </div>
+      </header>
+
+      <section class="content">
+        <div class="wheelArea">
+          <div class="wheelWrap">
+            <div class="pointer" id="pointer" aria-hidden="true"></div>
+
+            <canvas id="wheel" width="900" height="900" aria-label="Roleta de frases fofas"></canvas>
+            <div class="shine" id="shine" aria-hidden="true"></div>
+            <div class="hub" aria-hidden="true"><span>💞</span></div>
+
+            <canvas id="fx" aria-hidden="true"></canvas>
+          </div>
+
+          <div class="controls">
+            <button class="btn primary" id="spinBtn" type="button">Girar 🎡</button>
+            <button class="btn" id="shuffleBtn" type="button" title="Embaralha as posições (não muda as frases)">Embaralhar 🔀</button>
+            <button class="btn" id="resetBagBtn" type="button" title="Reseta o modo sem repetir">Reset “Sem repetir” ♻️</button>
+          </div>
+        </div>
+
+        <aside class="side">
+          <h2>Configurações</h2>
+          <p class="hint">Dica: aperta <strong>Espaço</strong> pra girar. <strong>ESC</strong> fecha o resultado.</p>
+
+          <div class="panel" role="group" aria-label="Toggles">
+            <div class="toggle">
+              <span>Ativar/Desativar Som</span>
+              <div class="switch on" id="soundSwitch" role="switch" aria-checked="true" tabindex="0">
+                <div class="knob"></div>
+              </div>
+            </div>
+            <div class="toggle">
+              <span>Modo “Sem repetir”</span>
+              <div class="switch" id="norepeatSwitch" role="switch" aria-checked="false" tabindex="0">
+                <div class="knob"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ✅ ADMIN (ESCONDIDO) -->
+          <div class="admin" id="adminBox" aria-hidden="true">
+            <div class="adminTop">
+              <div class="pill" title="Data do contador (localStorage)">
+                📅 <span id="adminDate">—</span>
+              </div>
+              <div class="pill" title="Giros usados hoje">
+                🎡 Usados: <strong id="adminUsed">0</strong>
+              </div>
+            </div>
+
+            <div class="row">
+              <input class="input" id="adminPin" type="password" inputmode="numeric" placeholder="PIN" autocomplete="off" />
+              <button class="btn danger" id="adminResetBtn" type="button" title="Reseta giros para 0 (volta 2 giros)">
+                Resetar ⏳
+              </button>
+            </div>
+
+            <div class="row">
+              <button class="btn" id="adminAddBtn" type="button" title="Dá +1 giro (respeita PIN)">
+                +1 ➕
+              </button>
+              <button class="btn" id="adminHideBtn" type="button" title="Esconder painel admin">
+                Esconder 🙈
+              </button>
+            </div>
+
+            <div class="mini">
+              (Modo secreto) — para abrir: digite <strong>ADMIN</strong> no teclado.
+            </div>
+          </div>
+
+          <h2 style="margin-top:4px;">Itens da roleta</h2>
+          <p class="hint">Você tem <strong>duas chances</strong> caso queira repetir</p>
+          <div class="list" id="itemsList" aria-label="Lista de itens da roleta"></div>
+
+          <h2 style="margin-top:4px;">Histórico</h2>
+          <p class="hint">Últimos 5 resultados.</p>
+          <div class="history" id="historyList" aria-label="Histórico de resultados"></div>
+        </aside>
+      </section>
+
+      <footer>
+        <span>Feito com carinho por Felipe ✨</span>
+        <span>Atalho: <strong>Espaço</strong> para girar • <strong>ESC</strong> fecha</span>
+      </footer>
+    </main>
+  </div>
+
+  <!-- Modal -->
+  <div class="overlay" id="overlay" role="dialog" aria-modal="true" aria-labelledby="mTitle">
+    <div class="modal">
+      <div class="mTop">
+        <h3 id="mTitle">Resultado 💘</h3>
+        <button class="close" id="closeModal" type="button" aria-label="Fechar">✕</button>
+      </div>
+
+      <div class="resultBox" aria-live="polite">
+        <p class="resultText" id="resultText">—</p>
+        <p class="sub" id="resultSub">Oi</p>
+      </div>
+
+      <div class="mActions">
+        <button class="btn" id="copyBtn" type="button">Copiar 📋</button>
+        <button class="btn" id="shareBtn" type="button" title="Abrir WhatsApp Web com a frase pronta">WhatsApp 💬</button>
+        <button class="btn primary" id="spinAgainBtn" type="button">Girar de novo 🎡</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite">Copiado!</div>
+
+  <script>
+    // =========================
+    // LIMITE: 2 giros por dia (salvo no localStorage)
+    // =========================
+    const DAILY_SPIN_LIMIT = 2;
+    const SPIN_STORE_KEY = "roleta_nossa_daily_spins_v1";
+
+    // ✅ PIN do Admin (troca aqui)
+    const ADMIN_PIN = "2207";
+
+    // ✅ sequência secreta pra mostrar admin (discreta)
+    const ADMIN_SECRET = "ADMIN"; // digite isso no teclado
+    let secretBuffer = "";
+
+    function getTodayKey(){
+      const d = new Date();
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, "0");
+      const day = String(d.getDate()).padStart(2, "0");
+      return `${y}-${m}-${day}`;
+    }
+
+    function readSpinState(){
+      try{
+        const raw = localStorage.getItem(SPIN_STORE_KEY);
+        const parsed = raw ? JSON.parse(raw) : null;
+        const today = getTodayKey();
+        if(!parsed || parsed.date !== today){
+          return { date: today, used: 0 };
+        }
+        return { date: today, used: Number(parsed.used) || 0 };
+      }catch{
+        return { date: getTodayKey(), used: 0 };
+      }
+    }
+
+    function writeSpinState(state){
+      try{
+        localStorage.setItem(SPIN_STORE_KEY, JSON.stringify(state));
+      }catch{}
+    }
+
+    let spinState = readSpinState();
+
+    function spinsLeft(){
+      return Math.max(0, DAILY_SPIN_LIMIT - spinState.used);
+    }
+
+    function canSpinNow(){
+      const today = getTodayKey();
+      if(spinState.date !== today){
+        spinState = { date: today, used: 0 };
+        writeSpinState(spinState);
+      }
+      return spinsLeft() > 0;
+    }
+
+    function consumeSpin(){
+      const today = getTodayKey();
+      if(spinState.date !== today){
+        spinState = { date: today, used: 0 };
+      }
+      spinState.used += 1;
+      writeSpinState(spinState);
+      updateSpinUI();
+      updateAdminUI();
+    }
+
+    // =========================
+    // ITENS (edite aqui)
+    // =========================
+    const ITEMS = [
+      "Vale um beijo demorado 💋",
+      "Abraço apertado por 30s 🤍",
+      "Escolho um elogio bem específico sobre você ✨",
+      "Mensagem fofa agora mesmo 🥰",
+      "Eu te devo um cafuné ☁️",
+      "Foto nossa favorita: manda aqui 📸",
+      "3 coisas que eu amo em você 💖",
+      "Um ‘eu te admiro’ com motivo 🫶",
+      "Playlist de 3 músicas pra nós 🎶",
+      "Um encontro simples (sem gastar muito) 🌙",
+      "Escolhe um filme e eu assisto contigo 🍿",
+      "Eu te devo uma massagem nas mãos 🤍",
+      "Ambos tem que mandar uma foto 🔥",
+      "Uma lembrança nossa que eu amo 🧠💞",
+      "Eu vou te mandar um áudio fofo 🎙️",
+      "Cupom: ‘Você manda em mim hoje’ 😌"
+    ];
+
+    // =========================
+    // Helpers
+    // =========================
+    const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+    const TAU = Math.PI * 2;
+    const $ = (id) => document.getElementById(id);
+
+    function easeOutCubic(t){ return 1 - Math.pow(1 - t, 3); }
+
+    function shuffle(arr){
+      for(let i = arr.length - 1; i > 0; i--){
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+      return arr;
+    }
+
+    function normalizeAngle(a){
+      let x = a % TAU;
+      if(x < 0) x += TAU;
+      return x;
+    }
+
+    // =========================
+    // AUDIO (WebAudio) - 100% offline
+    // =========================
+    let audioCtx = null;
+    let soundEnabled = true;
+
+    function ensureAudio(){
+      if(!audioCtx){
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      if(audioCtx.state === "suspended"){
+        audioCtx.resume().catch(()=>{});
+      }
+    }
+
+    function beep({freq=880, type="square", dur=0.03, gain=0.05} = {}){
+      if(!soundEnabled) return;
+      ensureAudio();
+      const t0 = audioCtx.currentTime;
+      const o = audioCtx.createOscillator();
+      const g = audioCtx.createGain();
+      o.type = type;
+      o.frequency.setValueAtTime(freq, t0);
+      g.gain.setValueAtTime(0.0001, t0);
+      g.gain.exponentialRampToValueAtTime(gain, t0 + 0.005);
+      g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+      o.connect(g).connect(audioCtx.destination);
+      o.start(t0);
+      o.stop(t0 + dur + 0.01);
+    }
+
+    function popSound(){
+      if(!soundEnabled) return;
+      beep({freq: 740, type:"triangle", dur:0.06, gain:0.06});
+      setTimeout(()=>beep({freq: 980, type:"triangle", dur:0.05, gain:0.045}), 30);
+    }
+
+    function tickSound(){
+      if(!soundEnabled) return;
+      beep({freq: 1200, type:"square", dur:0.02, gain:0.04});
+    }
+
+    // =========================
+    // Canvas wheel
+    // =========================
+    const canvas = $("wheel");
+    const ctx = canvas.getContext("2d");
+
+    let wheelRotation = 0;
+    let order = ITEMS.map((_, i) => i);
+
+    let noRepeatEnabled = false;
+    let bag = [];
+
+    function resetBag(){
+      bag = Array.from({length: order.length}, (_, i) => i);
+      shuffle(bag);
+    }
+
+    const dpr = Math.max(1, window.devicePixelRatio || 1);
+    function setupCanvas(){
+      const rect = canvas.getBoundingClientRect();
+      const size = Math.floor(Math.min(rect.width, rect.height));
+      canvas.width = Math.floor(size * dpr);
+      canvas.height = Math.floor(size * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+
+    function sliceColor(i, n){
+      const hue = (320 + (i * (220 / n))) % 360;
+      return `hsl(${hue} 78% 55%)`;
+    }
+
+    function wrapText(context, text, maxWidth, maxLines){
+      const words = String(text).split(" ");
+      const lines = [];
+      let line = "";
+
+      for(let i=0;i<words.length;i++){
+        const test = line ? line + " " + words[i] : words[i];
+        const w = context.measureText(test).width;
+        if(w <= maxWidth || !line){
+          line = test;
+        }else{
+          lines.push(line);
+          line = words[i];
+          if(lines.length === maxLines - 1) break;
+        }
+      }
+      if(line) lines.push(line);
+
+      if(lines.length === maxLines){
+        let last = lines[maxLines - 1];
+        while(context.measureText(last + "…").width > maxWidth && last.length > 0){
+          last = last.slice(0, -1);
+        }
+        lines[maxLines - 1] = last + "…";
+      }
+      return lines.slice(0, maxLines);
+    }
+
+    function roundRect(context, x, y, w, h, r){
+      const rr = Math.min(r, w/2, h/2);
+      context.beginPath();
+      context.moveTo(x + rr, y);
+      context.arcTo(x + w, y, x + w, y + h, rr);
+      context.arcTo(x + w, y + h, x, y + h, rr);
+      context.arcTo(x, y + h, x, y, rr);
+      context.arcTo(x, y, x + w, y, rr);
+      context.closePath();
+    }
+
+    function drawWheel(){
+      const rect = canvas.getBoundingClientRect();
+      const size = Math.min(rect.width, rect.height);
+      const r = size / 2 - 10;
+
+      const cx = size / 2, cy = size / 2;
+
+      ctx.clearRect(0, 0, size, size);
+
+      ctx.save();
+      ctx.translate(cx, cy);
+      ctx.beginPath();
+      ctx.arc(0, 0, r + 3, 0, TAU);
+      ctx.strokeStyle = "rgba(255,255,255,.12)";
+      ctx.lineWidth = 8;
+      ctx.stroke();
+      ctx.restore();
+
+      const n = order.length;
+      const slice = TAU / n;
+
+      ctx.save();
+      ctx.translate(cx, cy);
+      ctx.rotate(wheelRotation);
+
+      for(let i = 0; i < n; i++){
+        const start = i * slice;
+        const end = start + slice;
+
+        ctx.beginPath();
+        ctx.moveTo(0,0);
+        ctx.arc(0,0,r,start,end);
+        ctx.closePath();
+        ctx.fillStyle = sliceColor(i, n);
+        ctx.fill();
+
+        ctx.strokeStyle = "rgba(255,255,255,.15)";
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        const idx = order[i];
+        const label = ITEMS[idx];
+        const angle = start + slice / 2;
+
+        ctx.save();
+        ctx.rotate(angle);
+        ctx.translate(r * 0.67, 0);
+        ctx.rotate(Math.PI / 2);
+
+        ctx.font = `900 ${clamp(size * 0.028, 12, 18)}px ui-sans-serif, system-ui, Segoe UI, Roboto, Arial`;
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+
+        const maxWidth = r * 0.72;
+        const lines = wrapText(ctx, label, maxWidth, 2);
+
+        const padX = 10, padY = 8;
+        const lineH = clamp(size * 0.032, 14, 22);
+        const boxW = Math.min(maxWidth + padX*2, r*0.90);
+        const boxH = lines.length * lineH + padY*2;
+
+        ctx.fillStyle = "rgba(10,8,14,.88)";
+        roundRect(ctx, -boxW/2, -boxH/2, boxW, boxH, 10);
+        ctx.fill();
+
+        ctx.fillStyle = "rgba(255,255,255,.92)";
+        const startY = -(lineH*(lines.length-1))/2;
+        for(let k=0;k<lines.length;k++){
+          ctx.fillText(lines[k], 0, startY + k*lineH);
+        }
+
+        ctx.restore();
+      }
+
+      ctx.restore();
+
+      ctx.save();
+      ctx.translate(cx, cy);
+      const grd = ctx.createRadialGradient(0,0,10, 0,0,r);
+      grd.addColorStop(0, "rgba(0,0,0,.00)");
+      grd.addColorStop(1, "rgba(0,0,0,.22)");
+      ctx.fillStyle = grd;
+      ctx.beginPath();
+      ctx.arc(0,0,r,0,TAU);
+      ctx.fill();
+      ctx.restore();
+    }
+
+    function getResultIndex(){
+      const n = order.length;
+      const slice = TAU / n;
+      const pointerAngle = -Math.PI / 2;
+      let local = normalizeAngle(pointerAngle - wheelRotation);
+      const i = Math.floor(local / slice);
+      return clamp(i, 0, n-1);
+    }
+
+    // =========================
+    // CONFETTI HEARTS
+    // =========================
+    const fx = $("fx");
+    const fxCtx = fx.getContext("2d");
+    let fxParticles = [];
+    let fxRunning = false;
+
+    function resizeFx(){
+      const rect = fx.getBoundingClientRect();
+      fx.width = Math.floor(rect.width * dpr);
+      fx.height = Math.floor(rect.height * dpr);
+      fxCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+
+    function spawnHeartsBurst(){
+      const rect = fx.getBoundingClientRect();
+      const cx = rect.width / 2;
+      const cy = rect.height / 2;
+
+      const count = 90;
+      for(let i=0;i<count;i++){
+        const a = Math.random() * TAU;
+        const sp = 2.2 + Math.random() * 4.2;
+        fxParticles.push({
+          x: cx, y: cy,
+          vx: Math.cos(a) * sp,
+          vy: Math.sin(a) * sp - (1.0 + Math.random()*1.2),
+          rot: Math.random() * TAU,
+          vr: (-0.2 + Math.random()*0.4),
+          s: 8 + Math.random()*10,
+          life: 0,
+          ttl: 90 + Math.floor(Math.random()*40),
+          hue: 320 + Math.random()*50,
+          shape: Math.random() < 0.78 ? "heart" : "spark"
+        });
+      }
+      if(!fxRunning){
+        fxRunning = true;
+        requestAnimationFrame(fxTick);
+      }
+    }
+
+    function drawHeart(ctx, x, y, size, rot, fill){
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.rotate(rot);
+      ctx.scale(size/24, size/24);
+      ctx.beginPath();
+      ctx.moveTo(0, 7);
+      ctx.bezierCurveTo(0, 0, -12, 0, -12, 7);
+      ctx.bezierCurveTo(-12, 14, 0, 18, 0, 24);
+      ctx.bezierCurveTo(0, 18, 12, 14, 12, 7);
+      ctx.bezierCurveTo(12, 0, 0, 0, 0, 7);
+      ctx.closePath();
+      ctx.fillStyle = fill;
+      ctx.fill();
+      ctx.restore();
+    }
+
+    function fxTick(){
+      const rect = fx.getBoundingClientRect();
+      fxCtx.clearRect(0, 0, rect.width, rect.height);
+
+      const gravity = 0.08;
+      fxParticles = fxParticles.filter(p => p.life < p.ttl);
+
+      for(const p of fxParticles){
+        p.life++;
+        p.vy += gravity;
+        p.x += p.vx;
+        p.y += p.vy;
+        p.rot += p.vr;
+
+        const alpha = 1 - (p.life / p.ttl);
+        const fill = `hsla(${p.hue} 85% 60% / ${alpha})`;
+
+        if(p.shape === "heart"){
+          drawHeart(fxCtx, p.x, p.y, p.s, p.rot, fill);
+        }else{
+          fxCtx.save();
+          fxCtx.translate(p.x, p.y);
+          fxCtx.rotate(p.rot);
+          fxCtx.globalAlpha = alpha;
+          fxCtx.fillStyle = fill;
+          fxCtx.fillRect(-p.s/6, -p.s/2, p.s/3, p.s);
+          fxCtx.restore();
+        }
+      }
+
+      if(fxParticles.length) requestAnimationFrame(fxTick);
+      else fxRunning = false;
+    }
+
+    // =========================
+    // SPIN
+    // =========================
+    let spinning = false;
+    let spinStart = 0;
+    let spinDuration = 0;
+    let fromRot = 0;
+    let toRot = 0;
+    let lastTickIndex = null;
+
+    const pointerEl = $("pointer");
+    const shineEl = $("shine");
+    const statusText = $("statusText");
+
+    function setStatus(text){ statusText.textContent = text; }
+
+    function pointerTick(){
+      pointerEl.classList.remove("tick");
+      void pointerEl.offsetWidth;
+      pointerEl.classList.add("tick");
+      setTimeout(()=>pointerEl.classList.remove("tick"), 120);
+    }
+
+    function pickTargetPosition(){
+      const n = order.length;
+      if(!noRepeatEnabled) return Math.floor(Math.random() * n);
+      if(bag.length === 0) resetBag();
+      return bag.pop();
+    }
+
+    function spin(){
+      if(spinning) return;
+
+      if(!canSpinNow()){
+        lockUIForNoSpins();
+        showToast("Limite de 2 giros por hoje 😄");
+        return;
+      }
+
+      if(soundEnabled) ensureAudio();
+
+      spinning = true;
+      setStatus("Girando…");
+      shineEl.classList.add("spin");
+
+      const n = order.length;
+      const slice = TAU / n;
+
+      const targetPos = pickTargetPosition();
+      const pointerAngle = -Math.PI / 2;
+      const targetCenter = (targetPos * slice) + slice/2;
+
+      const base = normalizeAngle(pointerAngle - targetCenter);
+
+      const extraTurns = 6 + Math.floor(Math.random() * 3);
+      const extra = extraTurns * TAU;
+
+      fromRot = wheelRotation;
+      toRot = base + extra;
+      while(toRot < fromRot) toRot += TAU;
+
+      spinStart = performance.now();
+      spinDuration = 3900 + Math.random() * 900;
+
+      lastTickIndex = getResultIndex();
+      requestAnimationFrame(tick);
+    }
+
+    function tick(now){
+      const t = clamp((now - spinStart) / spinDuration, 0, 1);
+      const e = easeOutCubic(t);
+      wheelRotation = fromRot + (toRot - fromRot) * e;
+
+      drawWheel();
+
+      const curIdx = getResultIndex();
+      if(curIdx !== lastTickIndex){
+        lastTickIndex = curIdx;
+        tickSound();
+        pointerTick();
+      }
+
+      if(t < 1){
+        requestAnimationFrame(tick);
+      }else{
+        spinning = false;
+        wheelRotation = toRot;
+        drawWheel();
+
+        shineEl.classList.remove("spin");
+        setStatus("Pronta pra girar");
+
+        const pos = getResultIndex();
+        const text = ITEMS[order[pos]];
+
+        consumeSpin();
+
+        popSound();
+        spawnHeartsBurst();
+        addHistory(text);
+        openResult(text);
+
+        if(!canSpinNow()) lockUIForNoSpins();
+      }
+    }
+
+    // =========================
+    // Modal + Copy + Share + Toast
+    // =========================
+    const overlay = $("overlay");
+    const closeModalBtn = $("closeModal");
+    const resultTextEl = $("resultText");
+    const copyBtn = $("copyBtn");
+    const shareBtn = $("shareBtn");
+    const spinAgainBtn = $("spinAgainBtn");
+    const toast = $("toast");
+
+    let lastResult = "";
+
+    function openResult(text){
+      lastResult = text;
+      resultTextEl.textContent = text;
+      overlay.classList.add("active");
+      copyBtn.focus({ preventScroll:true });
+    }
+
+    function closeResult(){
+      overlay.classList.remove("active");
+      $("spinBtn").focus({ preventScroll:true });
+    }
+
+    function showToast(msg){
+      toast.textContent = msg;
+      toast.classList.add("show");
+      clearTimeout(showToast._t);
+      showToast._t = setTimeout(()=> toast.classList.remove("show"), 1600);
+    }
+
+    async function copyResult(){
+      if(!lastResult) return;
+      try{
+        await navigator.clipboard.writeText(lastResult);
+        showToast("Copiado! 💖");
+      }catch{
+        const ta = document.createElement("textarea");
+        ta.value = lastResult;
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand("copy");
+        ta.remove();
+        showToast("Copiado! 💖");
+      }
+    }
+
+    function shareWhatsApp(){
+      if(!lastResult) return;
+      const msg = `Roleta 💖: ${lastResult}`;
+      const url = `https://wa.me/?text=${encodeURIComponent(msg)}`;
+      window.open(url, "_blank", "noopener,noreferrer");
+    }
+
+    // =========================
+    // Side: list + history
+    // =========================
+    const listEl = $("itemsList");
+    const historyEl = $("historyList");
+    let history = [];
+
+    function renderList(){
+      listEl.innerHTML = "";
+      order.forEach((idx, pos) => {
+        const div = document.createElement("div");
+        div.className = "item";
+        div.textContent = `${pos+1}) ${ITEMS[idx]}`;
+        listEl.appendChild(div);
+      });
+    }
+
+    function renderHistory(){
+      historyEl.innerHTML = "";
+      if(history.length === 0){
+        const empty = document.createElement("div");
+        empty.className = "item";
+        empty.style.opacity = ".8";
+        empty.textContent = "Ainda sem resultados… gira aí 😄";
+        historyEl.appendChild(empty);
+        return;
+      }
+      history.forEach((txt, i) => {
+        const row = document.createElement("div");
+        row.className = "hItem";
+        const num = document.createElement("div");
+        num.className = "hNum";
+        num.textContent = String(i+1);
+        const t = document.createElement("div");
+        t.textContent = txt;
+        row.appendChild(num);
+        row.appendChild(t);
+        historyEl.appendChild(row);
+      });
+    }
+
+    function addHistory(text){
+      history.unshift(text);
+      history = history.slice(0, 5);
+      renderHistory();
+    }
+
+    // =========================
+    // Switch UI
+    // =========================
+    function setSwitch(el, on){
+      el.classList.toggle("on", !!on);
+      el.setAttribute("aria-checked", on ? "true" : "false");
+    }
+
+    const soundSwitch = $("soundSwitch");
+    const norepeatSwitch = $("norepeatSwitch");
+
+    function toggleSwitch(el){
+      const on = !el.classList.contains("on");
+      setSwitch(el, on);
+      return on;
+    }
+
+    function bindSwitch(el, onToggle){
+      el.addEventListener("click", () => onToggle());
+      el.addEventListener("keydown", (e) => {
+        if(e.key === "Enter" || e.key === " "){
+          e.preventDefault();
+          onToggle();
+        }
+      });
+    }
+
+    // =========================
+    // Daily limit UI helpers
+    // =========================
+    const spinsLeftText = $("spinsLeftText");
+    const spinBtn = $("spinBtn");
+    const spinAgainBtnEl = $("spinAgainBtn");
+
+    function updateSpinUI(){
+      const left = spinsLeft();
+      spinsLeftText.textContent = left === 0 ? "0 giros hoje" : `${left} ${left === 1 ? "giro" : "giros"} hoje`;
+      spinBtn.disabled = (left === 0);
+      spinAgainBtnEl.disabled = (left === 0);
+    }
+
+    function lockUIForNoSpins(){
+      updateSpinUI();
+      setStatus("Limite diário atingido");
+      $("resultSub").textContent = "Vocês já fizeram os 2 giros de hoje. Amanhã libera de novo 💖";
+    }
+
+    // =========================
+    // ✅ ADMIN (DISCRETO)
+    // - abre digitando ADMIN (em qualquer lugar)
+    // - fecha clicando "Esconder" ou digitando ADMIN de novo
+    // =========================
+    const adminBox = $("adminBox");
+    const adminDate = $("adminDate");
+    const adminUsed = $("adminUsed");
+    const adminPin = $("adminPin");
+    const adminResetBtn = $("adminResetBtn");
+    const adminAddBtn = $("adminAddBtn");
+    const adminHideBtn = $("adminHideBtn");
+
+    function setAdminVisible(v){
+      adminBox.classList.toggle("show", !!v);
+      adminBox.setAttribute("aria-hidden", v ? "false" : "true");
+      if(v){
+        updateAdminUI();
+        setTimeout(()=>adminPin.focus({preventScroll:true}), 50);
+        showToast("Modo admin 🔒");
+      }else{
+        adminPin.value = "";
+        showToast("Admin oculto 🙈");
+      }
+    }
+
+    function updateAdminUI(){
+      canSpinNow();
+      adminDate.textContent = spinState.date;
+      adminUsed.textContent = String(spinState.used);
+    }
+
+    function requirePin(){
+      const typed = String(adminPin.value || "").trim();
+      if(typed !== ADMIN_PIN){
+        showToast("PIN incorreto ❌");
+        adminPin.focus({ preventScroll:true });
+        return false;
+      }
+      return true;
+    }
+
+    function adminSetUsed(newUsed){
+      const today = getTodayKey();
+      spinState = { date: today, used: Math.max(0, Number(newUsed) || 0) };
+      if(spinState.used > DAILY_SPIN_LIMIT) spinState.used = DAILY_SPIN_LIMIT;
+
+      writeSpinState(spinState);
+      updateSpinUI();
+      updateAdminUI();
+
+      if(canSpinNow()) setStatus("Pronta pra girar");
+      else lockUIForNoSpins();
+    }
+
+    adminResetBtn.addEventListener("click", () => {
+      if(!requirePin()) return;
+      adminSetUsed(0);
+      showToast("Resetado ✅");
+      adminPin.value = "";
+    });
+
+    adminAddBtn.addEventListener("click", () => {
+      if(!requirePin()) return;
+      adminSetUsed(Math.max(0, spinState.used - 1));
+      showToast("+1 giro liberado ➕");
+      adminPin.value = "";
+    });
+
+    adminHideBtn.addEventListener("click", () => setAdminVisible(false));
+
+    // =========================
+    // Buttons + Events
+    // =========================
+    $("spinBtn").addEventListener("click", () => spin());
+
+    $("shuffleBtn").addEventListener("click", () => {
+      if(spinning) return;
+      shuffle(order);
+      wheelRotation = normalizeAngle(wheelRotation);
+      renderList();
+      drawWheel();
+      showToast("Embaralhado 🔀");
+      resetBag();
+    });
+
+    $("resetBagBtn").addEventListener("click", () => {
+      resetBag();
+      showToast("Resetado ♻️");
+    });
+
+    closeModalBtn.addEventListener("click", closeResult);
+    overlay.addEventListener("click", (e) => { if(e.target === overlay) closeResult(); });
+
+    copyBtn.addEventListener("click", copyResult);
+    shareBtn.addEventListener("click", shareWhatsApp);
+
+    spinAgainBtnEl.addEventListener("click", () => {
+      closeResult();
+      setTimeout(() => spin(), 120);
+    });
+
+    bindSwitch(soundSwitch, () => {
+      soundEnabled = toggleSwitch(soundSwitch);
+      if(soundEnabled){
+        ensureAudio();
+        showToast("Som ligado 🔊");
+      }else{
+        showToast("Som desligado 🔇");
+      }
+    });
+
+    bindSwitch(norepeatSwitch, () => {
+      noRepeatEnabled = toggleSwitch(norepeatSwitch);
+      if(noRepeatEnabled){
+        resetBag();
+        showToast("Sem repetir ✅");
+      }else{
+        showToast("Repetições liberadas 🎲");
+      }
+    });
+
+    window.addEventListener("keydown", (e) => {
+      if(e.key === "Escape" && overlay.classList.contains("active")){
+        e.preventDefault();
+        closeResult();
+      }
+
+      if(e.key === " "){
+        if(overlay.classList.contains("active")) return;
+        e.preventDefault();
+        spin();
+      }
+
+      // ✅ segredo: digitar ADMIN (não pega se estiver digitando no input do PIN)
+      const tag = (document.activeElement && document.activeElement.tagName) ? document.activeElement.tagName.toLowerCase() : "";
+      const isTyping = tag === "input" || tag === "textarea";
+      if(isTyping) return;
+
+      const k = e.key.length === 1 ? e.key.toUpperCase() : "";
+      if(!k) return;
+
+      secretBuffer = (secretBuffer + k).slice(-ADMIN_SECRET.length);
+      if(secretBuffer === ADMIN_SECRET){
+        const isShown = adminBox.classList.contains("show");
+        setAdminVisible(!isShown);
+        secretBuffer = "";
+      }
+    });
+
+    // =========================
+    // Init + responsive redraw
+    // =========================
+    function refresh(){
+      setupCanvas();
+      resizeFx();
+      drawWheel();
+    }
+
+    const ro = new ResizeObserver(() => {
+      if(spinning) return;
+      refresh();
+    });
+    ro.observe(canvas);
+
+    renderList();
+    renderHistory();
+    resetBag();
+    setSwitch(soundSwitch, true);
+    setSwitch(norepeatSwitch, false);
+
+    updateSpinUI();
+    if(!canSpinNow()) lockUIForNoSpins();
+
+    refresh();
+  </script>
+</body>
+</html>
